@@ -52,7 +52,6 @@ def agregarProducto():
     conn.commit()
     conn.close()
 
-
 def leerInventario():
     conn = sql.connect('inventario.db') 
     cursor = conn.cursor()
@@ -73,7 +72,6 @@ def leerInventario():
         print(f"Cantidad: {cantidad}")
         print(f"Categoría: {categoria}")
         print("-" * 50)
-
 
 def identificarProducto():
     while True:
@@ -106,7 +104,6 @@ def identificarProducto():
                 return 
         else:
             print(colorama.Fore.RED + "El producto con ese ID no existe.")
-
 
 def editarCantidad():
     nombre, cantidad, precio, categoria, idProducto = identificarProducto()
@@ -184,6 +181,88 @@ def reporteStockBajo():
         print(colorama.Fore.GREEN + "No hay productos con stock bajo.")
         print(colorama.Fore.RESET)
 
+def buscarProducto():
+    print(colorama.Fore.CYAN)
+    print("desea buscar un producto por nombre, por categoria o por ID?")
+    print("1. Nombre")
+    print("2. Categoria")
+    print("3. ID")
+    print(colorama.Fore.RED)
+    opcion = int(input("Seleccione una opción: "))
+    print()
+    if opcion == 1:
+        while True:
+            nombre = input(colorama.Fore.RED + "Ingrese el nombre del producto: ")
+            conn = sql.connect('inventario.db')
+            cursor = conn.cursor()
+            instruccion = "SELECT * FROM productos WHERE nombre LIKE ?"
+            cursor.execute(instruccion, (f"%{nombre}%",))
+            productos = cursor.fetchall()
+            conn.close()
+            if not productos:
+                print()
+                print(colorama.Fore.YELLOW + "Producto no encontrado")
+                print()
+            else:
+                break
+        
+    elif opcion == 2:
+        while True:
+            categoria = input(colorama.Fore.RED + "Ingrese la categoria del producto: ")
+            conn = sql.connect('inventario.db')
+            cursor = conn.cursor()
+            instruccion = "SELECT * FROM productos WHERE categoria LIKE ?"
+            cursor.execute(instruccion, (f"%{categoria}%",))
+            productos = cursor.fetchall()
+            conn.close()
+            if not productos:
+                print()
+                print(colorama.Fore.YELLOW + "Producto no encontrado")
+                print()
+            else:
+                break
+
+    elif opcion == 3:
+        while True:
+            print (colorama.Fore.RED)
+            id = input("Ingrese el ID del producto: ")
+            conn = sql.connect('inventario.db')
+            cursor = conn.cursor()
+            instruccion = "SELECT * FROM productos WHERE id = ?"
+            cursor.execute(instruccion, (id,))
+            productos = cursor.fetchall()
+            conn.close()
+            if not productos:
+                print()
+                print(colorama.Fore.YELLOW + colorama.Fore.YELLOW + "Producto no encontrado")
+                print()
+                print(colorama.Fore.CYAN + "desea intentar de nuevo o consultar la lista de productos")
+                print("1. Intentar de nuevo")
+                print("2. Consultar lista de productos")
+                opcion = int(input(colorama.Fore.RED + "Seleccione una opción: "))
+                print(colorama.Fore.RESET)
+                if opcion == 2:
+                    leerInventario()
+                elif opcion == 1:
+                    continue
+            else:
+                break
+            
+
+    if productos:
+        print(colorama.Fore.GREEN)
+        print("Productos encontrados:")
+        print("-" * 50)
+        for producto in productos:
+            id, nombre, descripcion, precio, cantidad, categoria = producto
+            print(f"ID: {id}")
+            print(f"Nombre: {nombre}")
+            print(f"Descripción: {descripcion}")
+            print(f"Precio: ${precio:.2f}")
+            print(f"Cantidad: {cantidad}")
+            print(f"Categoría: {categoria}")
+            print("-" * 50)
+        print(colorama.Fore.RESET)
 #VARIABLES
 #CODIGO PRINCIPAL
 
@@ -222,8 +301,7 @@ while True: # Ciclo infinito para mostrar el menú principal una y otra vez, has
         eliminarProducto()
 
     elif opcion == 5:
-        identificarProducto()
-
+        buscarProducto()
     elif opcion == 6:
         reporteStockBajo()
 
