@@ -23,7 +23,7 @@ def createTable():
             categoria TEXT
         )"""
     )
-    conn.commit
+    conn.commit()
     conn.close()
 
 #FUNCIONES PRINCIPALES
