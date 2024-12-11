@@ -52,6 +52,7 @@ def agregarProducto():
     conn.commit()
     conn.close()
 
+
 def leerInventario():
     conn = sql.connect('inventario.db') 
     cursor = conn.cursor()
@@ -73,38 +74,42 @@ def leerInventario():
         print(f"Categoría: {categoria}")
         print("-" * 50)
 
-def editarCantidad():
+
+def identificarProducto():
     while True:
         print(colorama.Fore.RED)
         idProducto = int(input("Ingrese el ID del producto: ")) # Solicitamos el ID del producto
         # Mostramos el producto seleccionado
         conn = sql.connect('inventario.db')
         cursor = conn.cursor() 
-        instruccion = f"SELECT nombre,cantidad FROM productos WHERE id = ? "
+        instruccion = f"SELECT nombre, cantidad, precio, categoria FROM productos WHERE id = ? "
         cursor.execute(instruccion, (idProducto,))
         datos = cursor.fetchone()
         conn.close()
     
         if datos:
-            nombre, cantidad = datos  # Desempaquetamos los valores
+            nombre, cantidad, precio, categoria = datos  # Desempaquetamos los valores
             print(colorama.Fore.YELLOW + f"El producto seleccionado es: {nombre}")
             print(colorama.Fore.YELLOW + f"Cantidad actual: {cantidad}")
+            print(colorama.Fore.YELLOW + f"Precio: ${precio:.2f}")
+            print(colorama.Fore.YELLOW + f"Categoría: {categoria}")
             print(colorama.Fore.RESET)
 
-            print(colorama.Fore.CYAN + "Desea cambiar la cantidad de este producto?")
+            print(colorama.Fore.CYAN + "Este es el producto que usted esta buscando?")
             print( "1. Si")
             print("2. No")
             opcion = int(input(colorama.Fore.RED + "Seleccione una opción: "))
             if opcion == 1:
-                break
+                return nombre, cantidad, precio, categoria, idProducto # Retornamos los valores
             elif opcion == 2:
                 print(colorama.Fore.GREEN + "Saliendo...")
-                return
+                return 
         else:
             print(colorama.Fore.RED + "El producto con ese ID no existe.")
 
-    
-    #Una vez mostrado el producto, solicitamos la nueva cantidad
+
+def editarCantidad():
+    nombre, cantidad, precio, categoria, idProducto = identificarProducto()
 
     nuevaCantidad = int(input("Ingrese la nueva cantidad del producto: ")) # Solicitamos la nueva cantidad del producto
     print(colorama.Fore.RESET)
@@ -115,18 +120,69 @@ def editarCantidad():
     instruccion = f"UPDATE productos SET cantidad = {nuevaCantidad}  WHERE id = {idProducto}" 
     cursor.execute(instruccion)
 
-    print(colorama.Fore.GREEN + "Cantidad actualizada con éxito")
+    print(colorama.Fore.GREEN + f"{nombre} paso de tener {cantidad} unidades a tener {nuevaCantidad} unidades")
     conn.commit()
     conn.close()
 
 def eliminarProducto():
-    ...
+    nombre, cantidad, precio, categoria, idProducto = identificarProducto()
+    print()
+    print(colorama.Fore.RED + "¿Está seguro que desea eliminar este producto?: ")
+    print("1. Si")
+    print("2. No")
+    opcion = int(input(colorama.Fore.RED + "Seleccione una opción: "))
 
-def buscarProducto():
-    ...
+    while opcion != 1 and opcion != 2:
+        print()
+        print(colorama.Fore.RED + "Opción inválida. Intente de nuevo.")
+        print(colorama.Fore.RESET)
+        print(colorama.Fore.RED + "¿Está seguro que desea eliminar este producto?: ")
+        print("1. Si")
+        print("2. No")
+        opcion = int(input(colorama.Fore.RED + "Seleccione una opción: "))
+
+    if opcion == 1:
+        print(colorama.Fore.RESET)
+        print(colorama.Fore.YELLOW + "Eliminando producto...")
+        print(colorama.Fore.RESET)
+        conn = sql.connect('inventario.db') # Creamos la conexión a la base de datos
+        cursor = conn.cursor() # Creamos el cursor
+        instruccion = f"DELETE FROM productos WHERE id = ?" 
+        cursor.execute(instruccion, (idProducto,))
+        conn.commit()
+        conn.close()
+        print(colorama.Fore.GREEN + f"Producto '{nombre}' eliminado con éxito")
+        print(colorama.Fore.RESET)
+    elif opcion == 2:
+        print(colorama.Fore.GREEN + "Saliendo...")
+        print(colorama.Fore.RESET)
+    else:
+        print(colorama.Fore.RED + "Opción inválida. Intente de nuevo.")
+        print(colorama.Fore.RESET)
 
 def reporteStockBajo():
-    ...
+    conn = sql.connect('inventario.db') # Creamos la conexión a la base de datos
+    cursor = conn.cursor() # Creamos el cursor
+    instruccion = f"SELECT * FROM productos WHERE cantidad < 5" # Seleccionamos los productos con stock menor a 5
+    cursor.execute(instruccion)
+    productos = cursor.fetchall()
+    conn.close()
+
+    if productos:
+        print(colorama.Fore.RED + "Productos con stock bajo:")
+        print("-" * 50)
+        for producto in productos:
+            id, nombre, descripcion, precio, cantidad, categoria = producto
+            print(f"ID: {id}")
+            print(f"Nombre: {nombre}")
+            print(f"Descripción: {descripcion}")
+            print(f"Precio: ${precio:.2f}")
+            print(colorama.Fore.YELLOW + f"Cantidad: {cantidad}")
+            print(colorama.Fore.RED + f"Categoría: {categoria}")
+            print("-" * 50)
+    else:
+        print(colorama.Fore.GREEN + "No hay productos con stock bajo.")
+        print(colorama.Fore.RESET)
 
 #VARIABLES
 #CODIGO PRINCIPAL
@@ -166,7 +222,7 @@ while True: # Ciclo infinito para mostrar el menú principal una y otra vez, has
         eliminarProducto()
 
     elif opcion == 5:
-        buscarProducto()
+        identificarProducto()
 
     elif opcion == 6:
         reporteStockBajo()
