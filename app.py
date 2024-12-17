@@ -106,20 +106,22 @@ def identificarProducto():
             print(colorama.Fore.RED + "El producto con ese ID no existe.")
 
 def editarCantidad():
-    nombre, cantidad, precio, categoria, idProducto = identificarProducto()
+    if identificarProducto() == None:
+        return
+    else:
+        nombre, cantidad, precio, categoria, idProducto = identificarProducto()
+        nuevaCantidad = int(input("Ingrese la nueva cantidad del producto: ")) # Solicitamos la nueva cantidad del producto
+        print(colorama.Fore.RESET)
+        print(colorama.Fore.YELLOW + "Editando producto...")
 
-    nuevaCantidad = int(input("Ingrese la nueva cantidad del producto: ")) # Solicitamos la nueva cantidad del producto
-    print(colorama.Fore.RESET)
-    print(colorama.Fore.YELLOW + "Editando producto...")
+        conn = sql.connect('inventario.db') # Creamos la conexión a la base de datos
+        cursor = conn.cursor() # Creamos el cursor
+        instruccion = f"UPDATE productos SET cantidad = {nuevaCantidad}  WHERE id = {idProducto}" 
+        cursor.execute(instruccion)
 
-    conn = sql.connect('inventario.db') # Creamos la conexión a la base de datos
-    cursor = conn.cursor() # Creamos el cursor
-    instruccion = f"UPDATE productos SET cantidad = {nuevaCantidad}  WHERE id = {idProducto}" 
-    cursor.execute(instruccion)
-
-    print(colorama.Fore.GREEN + f"{nombre} paso de tener {cantidad} unidades a tener {nuevaCantidad} unidades")
-    conn.commit()
-    conn.close()
+        print(colorama.Fore.GREEN + f"{nombre} paso de tener {cantidad} unidades a tener {nuevaCantidad} unidades")
+        conn.commit()
+        conn.close()
 
 def eliminarProducto():
     nombre, cantidad, precio, categoria, idProducto = identificarProducto()
